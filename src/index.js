@@ -1,4 +1,3 @@
-console.log("hello web sever socket");
 var express = require('express');
 var app = express();
 let server = require('http').Server(app);
