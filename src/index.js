@@ -15,15 +15,16 @@ var array_user_socket = {};
 /*add user */
 const addUser = (userId, socketId) => {
    /*array_user_socket */
-   array_user_socket[userId] = {"socket_id":socketId};
+   array_user_socket[userId] = {"socket_id":socketId, "uid_user":userId};
 };
 
 /*remove user */
 const removeUser = (socketId) => {
    for( var key in array_user_socket ) {
       if(array_user_socket[key].socket_id == socketId){
+         uid_user = array_user_socket[key].uid_user;
          delete array_user_socket[key];
-         break;
+         return uid_user;
       }
    }
 };
@@ -40,11 +41,9 @@ io.on('connection', (socket) => {
 
    /*take user_id and socket_id form user */
    socket.on("addUser", (userId) =>{
-      addUser(userId, socket.id)
-      io.emit("getUser", array_user_socket);
-
-      /*add uid_user to socket */
-      socket.uid_user = userId;
+      let socket_id = socket.id;
+      addUser(userId, socket.id);
+      io.emit("getUser", {userId , socket_id} );
       console.log(array_user_socket);
    })
    socket.on("get_friend_socket_id", (uid_user_friend) =>{
@@ -55,9 +54,9 @@ io.on('connection', (socket) => {
    /*check user disconnect and emit user online client*/
    socket.on("disconnect", () => {
       console.log("a user disconnected!");
-      removeUser(socket.id);
-      console.log(array_user_socket)
-      io.emit("getUser", array_user_socket);
+      let uid_user = removeUser(socket.id);
+      io.emit("offline_user", uid_user);
+      console.log(array_user_socket);
     });
 
    /*socket on listen send message and emit message client */
