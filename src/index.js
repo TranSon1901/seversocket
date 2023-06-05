@@ -40,10 +40,8 @@ io.on('connection', (socket) => {
       /*save user_id & socket id to array array_user_socket */
       let socket_id = socket.id;
       save_user(userId, socket.id);
-      
       socket.uid_user = userId;
-      console.log("on save : " + socket.uid_user);
-
+      console.log(array_user_socket); 
       /*send user id & socket id to socket client */
       io.to(socket.id).emit("getUser", {userId , socket_id});
    })
@@ -57,22 +55,30 @@ io.on('connection', (socket) => {
       if(socket_id_friend != "") io.to(socket.id).emit("socket_id_friend", socket_id_friend);
    })
 
+   socket.on("msg_seen", (uid_user_friend) =>{
+
+      /*get socket id from uid_user_friend */
+      let socket_id_friend = get_socket_id(uid_user_friend);
+      let msg = "ok";
+      /*send socket id to socket client */
+      if(socket_id_friend != "") io.to(socket_id_friend).emit("sent_message_seen", msg);
+   })
+
    /*check user disconnect and emit user online client*/
    socket.on("disconnect", () => {
       remove_user(socket.uid_user);
-      console.log("remove result");
-      console.log(array_user_socket); 
+    
     });
 
    /*socket on listen send message and emit message client */
    socket.on("send-msg", ({uid_user, uid_friend, message }) => {
 
       /*get socket id from uid_friend */
-      let uid_socket_friend = get_socket_id(uid_friend)
+      let uid_socket_friend = get_socket_id(uid_friend);
       if(uid_socket_friend != ""){
 
          /*send msg: socket message & uid_user, message to socket client friend */
-         io.to(uid_socket_friend).emit("socket_message", {uid_user,message});
+         io.to(uid_socket_friend).emit("socket_message", {uid_user,message,uid_friend});
       }
 
    });
