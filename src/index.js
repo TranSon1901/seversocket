@@ -48,6 +48,8 @@ io.on('connection', (socket) => {
       
       /*send user id & socket id to socket client */
       io.to(socket.id).emit("getUser", {userId , socket_id});
+
+      console.log("data insert");
       console.log(array_user_socket);
    })
 
@@ -62,9 +64,10 @@ io.on('connection', (socket) => {
 
    /*check user disconnect and emit user online client*/
    socket.on("disconnect", () => {
-      console.log("a user disconnected!");
       let uid_user = removeUser(socket.id);
       io.emit("offline_user", uid_user);
+      
+      console.log("a user disconnected: !-" + socket.id + " uid_user: -" + uid_user);
       console.log(array_user_socket);
     });
 
@@ -99,17 +102,22 @@ io.on('connection', (socket) => {
       /*get friend list status */
       let array_friend = str_uid_user_friend.split(",");
       let array_friend_status = [];
+      console.log("array-friend");
+      console.log(array_friend);
       for(let i = 0; i < array_friend.length; i++){
          let uid_user_friend = array_friend[i];
-
+         console.log("friend:" + i + "- uid: "+ array_friend[i])
          /*check uid_user in user_socket */
          let user_status = "0";
          if(array_user_socket.hasOwnProperty(uid_user_friend)) user_status = "1";
 
-         array_friend_status[i].uid_user = uid_user_friend;
-         array_friend_status[i].status = user_status;
+         /*new array_friend_status item */
+         array_friend_status[i] = {"uid_user":uid_user_friend,"status":user_status};
+        
       }
       io.to(socket.id).emit("friend_list_status", JSON.stringify(array_friend_status));
+      console.log("get friend");
+      console.log(array_user_socket);
    })
 });
 
