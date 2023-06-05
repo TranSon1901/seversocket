@@ -41,14 +41,23 @@ io.on('connection', (socket) => {
 
    /*take user_id and socket_id form user */
    socket.on("addUser", (userId) =>{
+
+      /*save user_id & socket id to array array_user_socket */
       let socket_id = socket.id;
       addUser(userId, socket.id);
-      io.emit("getUser", {userId , socket_id} );
+      
+      /*send user id & socket id to socket client */
+      io.to(socket.id).emit("getUser", {userId , socket_id});
       console.log(array_user_socket);
    })
+
    socket.on("get_friend_socket_id", (uid_user_friend) =>{
+
+      /*get socket id from uid_user_friend */
       let socket_id_friend = get_socket_id(uid_user_friend);
-      if(socket_id_friend != "") io.emit("socket_id_friend", socket_id_friend);
+
+      /*send socket id to socket client */
+      if(socket_id_friend != "") io.to(socket.id).emit("socket_id_friend", socket_id_friend);
    })
 
    /*check user disconnect and emit user online client*/
@@ -61,12 +70,13 @@ io.on('connection', (socket) => {
 
    /*socket on listen send message and emit message client */
    socket.on("send-msg", ({uid_user, uid_friend, message }) => {
+
+      /*get socket id from uid_friend */
       let uid_socket_friend = get_socket_id(uid_friend)
       if(uid_socket_friend != ""){
-         io.to(uid_socket_friend).emit("socket_message", {
-            uid_user,
-            message,
-         });
+
+         /*send msg: socket message & uid_user, message to socket client friend */
+         io.to(uid_socket_friend).emit("socket_message", {uid_user,message});
       }
 
    });
@@ -81,6 +91,25 @@ io.on('connection', (socket) => {
    socket.on("stop_typing", (uid_user_friend)=>{
       let uid_socket_friend = get_socket_id(uid_user_friend);
       if(uid_socket_friend != "") io.to(uid_socket_friend).emit("get_typing", "");
+   })
+
+   /*socket on sending message and emit get sending client */
+   socket.on("friend_status", (str_uid_user_friend)=>{
+
+      /*get friend list status */
+      let array_friend = str_uid_user_friend.split(",");
+      let array_friend_status = [];
+      for(let i = 0; i < array_friend.length; i++){
+         let uid_user_friend = array_friend[i];
+
+         /*check uid_user in user_socket */
+         let user_status = "0";
+         if(array_user_socket.hasOwnProperty(uid_user_friend)) user_status = "1";
+
+         array_friend_status[i].uid_user = uid_user_friend;
+         array_friend_status[i].status = user_status;
+      }
+      io.to(socket.id).emit("friend_list_status", JSON.stringify(array_friend_status));
    })
 });
 
