@@ -42,8 +42,20 @@ io.on('connection', (socket) => {
       save_user(userId, socket.id);
       socket.uid_user = userId;
       console.log(array_user_socket); 
+
       /*send user id & socket id to socket client */
       io.to(socket.id).emit("getUser", {userId , socket_id});
+   })
+   
+   socket.on("friend_notyfi_message_seen", (message) =>{
+      let uid_user = message.uid_user;
+      let uid_user_friend = message.uid_user_friend;
+
+      /*get socket id from uid_user_friend */
+      let socket_id_friend = get_socket_id(uid_user_friend);
+
+      /*send socket id to socket client */
+      if(socket_id_friend != "") io.to(socket_id_friend).emit("friend_notyfi_message_seen", uid_user);
    })
 
    socket.on("get_friend_socket_id", (uid_user_friend) =>{
@@ -55,30 +67,42 @@ io.on('connection', (socket) => {
       if(socket_id_friend != "") io.to(socket.id).emit("socket_id_friend", socket_id_friend);
    })
 
-   socket.on("msg_seen", (uid_user_friend) =>{
-
+   /*socket sent messgae if friend not see message  */
+   socket.on("sent_message_to_friend", (message) =>{
+      let uid_user = message.uid_user;
+      let id_message = message.id_message;
       /*get socket id from uid_user_friend */
-      let socket_id_friend = get_socket_id(uid_user_friend);
-      let msg = "ok";
+      let socket_id_friend = get_socket_id(uid_user);
+      
       /*send socket id to socket client */
-      if(socket_id_friend != "") io.to(socket_id_friend).emit("sent_message_seen", msg);
+      if(socket_id_friend != "") io.to(socket_id_friend).emit("sent_received_to_user", id_message);
+   })
+
+   /*socket sent messgae if friend have seen message  */
+   socket.on("msg_received", (message) =>{
+      let uid_user = message.uid_user;
+      let id_message = message.id_message;
+      /*get socket id from uid_user_friend */
+      let socket_id_friend = get_socket_id(uid_user);
+      
+      /*send socket id to socket client */
+      if(socket_id_friend != "") io.to(socket_id_friend).emit("sent_msg_seen", id_message);
    })
 
    /*check user disconnect and emit user online client*/
    socket.on("disconnect", () => {
       remove_user(socket.uid_user);
-    
-    });
+   });
 
-   /*socket on listen send message and emit message client */
-   socket.on("send-msg", ({uid_user, uid_friend, message }) => {
+   /*event user send a message to friend */
+   socket.on("socket_message_send", ({uid_user, uid_friend, message, id_message }) => {
 
       /*get socket id from uid_friend */
       let uid_socket_friend = get_socket_id(uid_friend);
       if(uid_socket_friend != ""){
 
-         /*send msg: socket message & uid_user, message to socket client friend */
-         io.to(uid_socket_friend).emit("socket_message", {uid_user,message,uid_friend});
+         /*Notify friend a message come */
+         io.to(uid_socket_friend).emit("socket_message_come", {uid_user, message, uid_friend, id_message});
       }
 
    });
