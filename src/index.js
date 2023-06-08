@@ -95,14 +95,14 @@ io.on('connection', (socket) => {
    });
 
    /*event user send a message to friend */
-   socket.on("socket_message_send", ({uid_user, uid_friend, message, id_message }) => {
+   socket.on("socket_message_send", ({uid_user, uid_friend, message, id_message, username }) => {
 
       /*get socket id from uid_friend */
       let uid_socket_friend = get_socket_id(uid_friend);
       if(uid_socket_friend != ""){
 
          /*Notify friend a message come */
-         io.to(uid_socket_friend).emit("socket_message_come", {uid_user, message, uid_friend, id_message});
+         io.to(uid_socket_friend).emit("socket_message_come", {uid_user, message, uid_friend, id_message, username});
       }
 
    });
